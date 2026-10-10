@@ -1,0 +1,56 @@
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image version to deploy (e.g. 0.0.2) or 'latest'"
+        required: true
+        default: latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Configure required reviewers on this environment for a manual approval gate.
+    environment: production
+    steps:
+      - name: Validate deployment secrets
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          missing=()
+          for name in PROD_HOST PROD_USER PROD_SSH_KEY; do
+            if [[ -z "${!name}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} )); then
+            printf '::error::Missing production secret(s): %s. Configure these secrets in the production environment.\n' "${missing[*]}"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - name: Copy compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: docker-compose.yml
+          target: ~/todo-app
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          envs: DOCKERHUB_USERNAME,APP_VERSION
+          script: |
+            cd ~/todo-app
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          APP_VERSION: ${{ inputs.version }}

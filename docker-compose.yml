@@ -1,0 +1,11 @@
+services:
+  web:
+    image: ${DOCKERHUB_USERNAME}/todo-app:${APP_VERSION:-latest}
+    ports:
+      - "80:8000"
+    volumes:
+      - todo-data:/data
+    restart: unless-stopped
+
+volumes:
+  todo-data:

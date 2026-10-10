@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
+    form.add { display: flex; gap: .5rem; }
+    form.add input { flex: 1; padding: .5rem; }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid #eee; }
+    li form { margin: 0; }
+    li .title { flex: 1; }
+    .done .title { text-decoration: line-through; color: #888; }
+    footer { margin-top: 2rem; color: #888; font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <h1>Todo</h1>
+  <form class="add" method="post" action="{{ url_for('add') }}">
+    <input name="title" placeholder="What needs doing?" required autofocus>
+    <button>Add</button>
+  </form>
+  <ul>
+    {% for t in todos %}
+    <li class="{{ 'done' if t.done }}">
+      <form method="post" action="{{ url_for('toggle', todo_id=t.id) }}"><button>{{ '↺' if t.done else '✓' }}</button></form>
+      <span class="title">{{ t.title }}</span>
+      <form method="post" action="{{ url_for('delete', todo_id=t.id) }}"><button>✕</button></form>
+    </li>
+    {% else %}
+    <li>Nothing yet.</li>
+    {% endfor %}
+  </ul>
+  <footer>version {{ version }}</footer>
+</body>
+</html>
