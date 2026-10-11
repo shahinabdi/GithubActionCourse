@@ -19,4 +19,4 @@ USER app
 VOLUME /data
 EXPOSE 8000
 
-CMD ["gunicorn", "--no-control-socket", "-b", "0.0.0.0:8000", "app.wsgi:app"]
+CMD ["uvicorn", "app.asgi:app", "--host", "0.0.0.0", "--port", "8000"]
