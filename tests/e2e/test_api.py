@@ -6,7 +6,10 @@ import pytest
 
 @pytest.fixture
 def base_url():
-    return os.environ["E2E_BASE_URL"].rstrip("/")
+    url = os.environ["E2E_BASE_URL"].strip().rstrip("/")
+    if not url.startswith(("http://", "https://")):
+        url = f"http://{url}"
+    return url
 
 
 @pytest.mark.e2e
