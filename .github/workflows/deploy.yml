@@ -77,6 +77,8 @@ jobs:
           E2E_BASE_URL: ${{ vars.DEPLOY_BASE_URL }}
         run: |
           test -n "$E2E_BASE_URL" || (echo "::error::Configure DEPLOY_BASE_URL in the uat environment." && exit 1)
+          [[ "$E2E_BASE_URL" =~ ^https?:// ]] || E2E_BASE_URL="http://$E2E_BASE_URL"
+          export E2E_BASE_URL
           uv run pytest tests/e2e
       - name: Run production sanity tests
         if: inputs.environment == 'production'
@@ -84,4 +86,6 @@ jobs:
           PRODUCTION_BASE_URL: ${{ vars.DEPLOY_BASE_URL }}
         run: |
           test -n "$PRODUCTION_BASE_URL" || (echo "::error::Configure DEPLOY_BASE_URL in the production environment." && exit 1)
+          [[ "$PRODUCTION_BASE_URL" =~ ^https?:// ]] || PRODUCTION_BASE_URL="http://$PRODUCTION_BASE_URL"
+          export PRODUCTION_BASE_URL
           uv run pytest tests/sanity
